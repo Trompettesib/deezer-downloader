@@ -435,7 +435,7 @@ def parse_deezer_playlist(playlist_id):
             'tab': 0,
             'header': True,
             'lang': 'de',
-            'nb': 500}
+            'nb': 1}
     req = session.post(url_get_playlist_songs, json=data)
     json = req.json()
 
@@ -445,7 +445,19 @@ def parse_deezer_playlist(playlist_id):
 
     playlist_name = json_data['DATA']['TITLE']
     number_songs = json_data['DATA']['NB_SONG']
-    print("Playlist '{}' has {} songs".format(playlist_name, number_songs))
+    print("Playlist '{}' has {} songs\nRequesting songs ...".format(playlist_name, number_songs))
+
+    data = {'playlist_id': int(playlist_id),
+            'start': 0,
+            'tab': 0,
+            'header': True,
+            'nb': number_songs}
+    req = session.post(url_get_playlist_songs, json=data)
+    json = req.json()
+
+    if len(json['error']) > 0:
+        raise DeezerApiException("ERROR: deezer api said {}".format(json['error']))
+    json_data = json['results']
 
     print("Got {} songs from API".format(json_data['SONGS']['count']))
     return playlist_name, json_data['SONGS']['data']
